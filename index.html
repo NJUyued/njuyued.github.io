@@ -155,6 +155,17 @@
       font-size: 0.85rem;
       color: #666;
     }
+    .pub-subheading {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #3f51b5;
+      border-bottom: 2px solid #3f51b5;
+      padding-bottom: 4px;
+      margin-bottom: 16px;
+    }
+    .pub-group {
+      margin-bottom: 8px;
+    }
   </style>
   <title>Yue Duan (段岳)'s Homepage</title>
 
@@ -493,7 +504,10 @@
           </div>
 
           <div class="col-12 col-lg-8">
-            <div class="pub-page" id="pub-page-1">
+
+            <h3 class="pub-subheading">First-Author Publications</h3>
+            <div class="pub-group" id="pub-group-first">
+            <div class="pub-page" id="pub-first-page-1">
             <div class="view-list view-list-item">
               <code class="language-plaintext custom-tag-new">NEW</code><code
                 class="language-plaintext custom-tag">TIP 2025</code>
@@ -737,6 +751,9 @@
 
             </div>
 
+            </div>
+            <div class="pub-page" id="pub-first-page-2" style="display:none;">
+
             <div class="view-list view-list-item">
               <code class="language-plaintext custom-tag">TNNLS 2022</code>
               <!-- <i class="fas fa-file-alt pub-icon" aria-hidden="true"></i> -->
@@ -826,6 +843,15 @@
 
             </div>
 
+            </div>
+
+            <div class="pub-pagination" id="pub-pagination-first"></div>
+            </div>
+
+            <h3 class="pub-subheading" style="margin-top: 2rem;">Co-Authored Publications</h3>
+            <div class="pub-group" id="pub-group-coauth">
+            <div class="pub-page" id="pub-coauth-page-1">
+
             <div class="view-list view-list-item">
               <code class="language-plaintext custom-tag-new">NEW</code><code class="language-plaintext custom-tag">CVPR 2026</code>
               <a href="https://openaccess.thecvf.com/content/CVPR2026/html/Fa_One_Token_Two_Fates_A_Unified_Framework_via_Vision_Token_CVPR_2026_paper.html" target="_blank" rel="noopener">
@@ -851,11 +877,12 @@
                   target="_blank" rel="noopener">
                   PDF-Published
                 </a>
+                <a class="btn btn-outline-primary btn-page-header btn-sm" href="https://github.com/Fazhan-cs/OTT"
+                  target="_blank" rel="noopener">
+                  Code
+                </a>
               </div>
             </div>
-
-            </div>
-            <div class="pub-page" id="pub-page-2" style="display:none;">
 
             <div class="view-list view-list-item">
               <code class="language-plaintext custom-tag-new">NEW</code><code class="language-plaintext custom-tag">AAAI 2026</code>
@@ -885,6 +912,11 @@
                 <a class="btn btn-outline-primary btn-page-header btn-sm" href="https://github.com/Fazhan-cs/DAC"
                   target="_blank" rel="noopener">
                   Code
+                </a>
+                <a class="btn btn-outline-primary btn-page-header btn-sm"
+                  href="https://ojs.aaai.org/index.php/AAAI/article/view/39240/47490" target="_blank"
+                  rel="noopener">
+                  Video/Poster/Slides
                 </a>
               </div>
             </div>
@@ -995,7 +1027,8 @@
             </div>
             </div>
 
-            <div class="pub-pagination" id="pub-pagination"></div>
+            <div class="pub-pagination" id="pub-pagination-coauth"></div>
+            </div>
 
           </div>
 
@@ -1816,48 +1849,53 @@
 
   <script>
     (function() {
-      var pages = document.querySelectorAll('.pub-page');
-      if (pages.length <= 1) return;
-      var container = document.getElementById('pub-pagination');
-      if (!container) return;
-      var currentPage = 1;
-      var totalPages = pages.length;
+      var groups = document.querySelectorAll('.pub-group');
+      groups.forEach(function(group) {
+        var pages = group.querySelectorAll('.pub-page');
+        if (pages.length <= 1) return;
+        var container = group.querySelector('.pub-pagination');
+        if (!container) return;
+        var currentPage = 1;
+        var totalPages = pages.length;
 
-      function showPage(n) {
-        pages.forEach(function(p, i) {
-          p.style.display = (i + 1 === n) ? '' : 'none';
-        });
-        var buttons = container.querySelectorAll('button');
-        buttons.forEach(function(btn, i) {
-          if (i === 0) { btn.disabled = (n === 1); return; }     // prev
-          if (i === buttons.length - 1) { btn.disabled = (n === totalPages); return; } // next
-          var pageNum = parseInt(btn.textContent);
-          btn.classList.toggle('active', pageNum === n);
-        });
-      }
-
-      // Build pagination UI
-      var html = '<button id="pub-prev">&laquo; Prev</button>';
-      for (var i = 1; i <= totalPages; i++) {
-        html += '<button class="pub-page-btn' + (i === 1 ? ' active' : '') + '">' + i + '</button>';
-      }
-      html += '<button id="pub-next">Next &raquo;</button>';
-      html += '<span class="pub-page-info">Page <span id="pub-cur">1</span> of ' + totalPages + '</span>';
-      container.innerHTML = html;
-
-      container.addEventListener('click', function(e) {
-        if (e.target.tagName !== 'BUTTON') return;
-        if (e.target.id === 'pub-prev' && currentPage > 1) {
-          currentPage--;
-        } else if (e.target.id === 'pub-next' && currentPage < totalPages) {
-          currentPage++;
-        } else if (e.target.classList.contains('pub-page-btn')) {
-          currentPage = parseInt(e.target.textContent);
-        } else {
-          return;
+        function showPage(n) {
+          pages.forEach(function(p, i) {
+            p.style.display = (i + 1 === n) ? '' : 'none';
+          });
+          var buttons = container.querySelectorAll('button');
+          buttons.forEach(function(btn, i) {
+            if (i === 0) { btn.disabled = (n === 1); return; }
+            if (i === buttons.length - 1) { btn.disabled = (n === totalPages); return; }
+            var pageNum = parseInt(btn.textContent);
+            btn.classList.toggle('active', pageNum === n);
+          });
         }
-        showPage(currentPage);
-        document.getElementById('pub-cur').textContent = currentPage;
+
+        var html = '<button>&laquo; Prev</button>';
+        for (var i = 1; i <= totalPages; i++) {
+          html += '<button class="pub-page-btn' + (i === 1 ? ' active' : '') + '">' + i + '</button>';
+        }
+        html += '<button>Next &raquo;</button>';
+        html += '<span class="pub-page-info">Page <span class="pub-cur">1</span> of ' + totalPages + '</span>';
+        container.innerHTML = html;
+
+        var curSpan = container.querySelector('.pub-cur');
+
+        container.addEventListener('click', function(e) {
+          if (e.target.tagName !== 'BUTTON') return;
+          var btnText = e.target.textContent.trim();
+          if (btnText.indexOf('Prev') === 0 && currentPage > 1) {
+            currentPage--;
+          } else if (btnText.indexOf('Next') === 0 && currentPage < totalPages) {
+            currentPage++;
+          } else if (e.target.classList.contains('pub-page-btn')) {
+            currentPage = parseInt(e.target.textContent);
+          } else {
+            return;
+          }
+          showPage(currentPage);
+          curSpan.textContent = currentPage;
+        });
       });
     })();
   </script>
