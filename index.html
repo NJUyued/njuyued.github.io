@@ -113,6 +113,48 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       vertical-align: middle;
     }
+
+    /* Pagination styles */
+    .pub-pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+    .pub-pagination button {
+      min-width: 36px;
+      height: 36px;
+      border: 1px solid #ddd;
+      background: #fff;
+      color: #333;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+      padding: 0 8px;
+    }
+    .pub-pagination button:hover:not(:disabled) {
+      background: #3f51b5;
+      color: #fff;
+      border-color: #3f51b5;
+    }
+    .pub-pagination button.active {
+      background: #3f51b5;
+      color: #fff;
+      border-color: #3f51b5;
+      font-weight: bold;
+    }
+    .pub-pagination button:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+    .pub-page-info {
+      margin: 0 8px;
+      font-size: 0.85rem;
+      color: #666;
+    }
   </style>
   <title>Yue Duan (段岳)'s Homepage</title>
 
@@ -451,6 +493,7 @@
           </div>
 
           <div class="col-12 col-lg-8">
+            <div class="pub-page" id="pub-page-1">
             <div class="view-list view-list-item">
               <code class="language-plaintext custom-tag-new">NEW</code><code
                 class="language-plaintext custom-tag">TIP 2025</code>
@@ -824,6 +867,8 @@
 
             </div>
 
+            </div>
+            <div class="pub-page" id="pub-page-2" style="display:none;">
             <div class="view-list view-list-item">
               <code class="language-plaintext custom-tag">CVPR 2022</code>
               <!-- <i class="fas fa-file-alt pub-icon" aria-hidden="true"></i> -->
@@ -859,6 +904,9 @@
               </div>
 
             </div>
+            </div>
+
+            <div class="pub-pagination" id="pub-pagination"></div>
 
           </div>
 
@@ -1676,6 +1724,54 @@
 
 
   <script src="/js/wowchemy-publication.68f8d7090562ca65fc6d3cb3f8f2d2cb.js" type="module"></script>
+
+  <script>
+    (function() {
+      var pages = document.querySelectorAll('.pub-page');
+      if (pages.length <= 1) return;
+      var container = document.getElementById('pub-pagination');
+      if (!container) return;
+      var currentPage = 1;
+      var totalPages = pages.length;
+
+      function showPage(n) {
+        pages.forEach(function(p, i) {
+          p.style.display = (i + 1 === n) ? '' : 'none';
+        });
+        var buttons = container.querySelectorAll('button');
+        buttons.forEach(function(btn, i) {
+          if (i === 0) { btn.disabled = (n === 1); return; }     // prev
+          if (i === buttons.length - 1) { btn.disabled = (n === totalPages); return; } // next
+          var pageNum = parseInt(btn.textContent);
+          btn.classList.toggle('active', pageNum === n);
+        });
+      }
+
+      // Build pagination UI
+      var html = '<button id="pub-prev">&laquo; Prev</button>';
+      for (var i = 1; i <= totalPages; i++) {
+        html += '<button class="pub-page-btn' + (i === 1 ? ' active' : '') + '">' + i + '</button>';
+      }
+      html += '<button id="pub-next">Next &raquo;</button>';
+      html += '<span class="pub-page-info">Page <span id="pub-cur">1</span> of ' + totalPages + '</span>';
+      container.innerHTML = html;
+
+      container.addEventListener('click', function(e) {
+        if (e.target.tagName !== 'BUTTON') return;
+        if (e.target.id === 'pub-prev' && currentPage > 1) {
+          currentPage--;
+        } else if (e.target.id === 'pub-next' && currentPage < totalPages) {
+          currentPage++;
+        } else if (e.target.classList.contains('pub-page-btn')) {
+          currentPage = parseInt(e.target.textContent);
+        } else {
+          return;
+        }
+        showPage(currentPage);
+        document.getElementById('pub-cur').textContent = currentPage;
+      });
+    })();
+  </script>
 
 
 
