@@ -350,7 +350,9 @@
                     <!-- <i class="fas fa-graduation-cap big-icon"></i> -->
                     <img src="media\icons\brands\gs.png" style="width: 2rem; height: 2rem;" alt="Google Scholar" />
                   </a>
-                  <div class="icon-stat" id="gs-cite">···</div>
+                  <div class="icon-stat" id="gs-cite">
+                    <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fgoogle-scholar-badge.vercel.app%2Fcitations%3Fuser%3D_56aZQUAAAAJ" style="height: 1.05rem;" alt="Google Scholar citations" />
+                  </div>
                 </li>
 
                 <li>
@@ -1933,24 +1935,6 @@
         });
     })();
 
-    // Fetch Google Scholar citations via CORS proxy
-    (function() {
-      var gsUrl = 'https://scholar.google.com/citations?user=_56aZQUAAAAJ&hl=en';
-      var proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(gsUrl);
-      fetch(proxyUrl)
-        .then(function(r) { return r.text(); })
-        .then(function(html) {
-          var m = html.match(/Citations<\/td>\s*<td class="gsc_rsb_std">(\d+)<\/td>/);
-          if (m) {
-            var el = document.getElementById('gs-cite');
-            if (el) el.textContent = m[1] + ' cites';
-          }
-        })
-        .catch(function() {
-          var el = document.getElementById('gs-cite');
-          if (el) el.textContent = '';
-        });
-    })();
   </script>
 
 </body>
