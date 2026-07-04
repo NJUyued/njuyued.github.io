@@ -350,9 +350,7 @@
                     <!-- <i class="fas fa-graduation-cap big-icon"></i> -->
                     <img src="media\icons\brands\gs.png" style="width: 2rem; height: 2rem;" alt="Google Scholar" />
                   </a>
-                  <div class="icon-stat" id="gs-cite">
-                    <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fgoogle-scholar-badge.vercel.app%2Fcitations%3Fuser%3D_56aZQUAAAAJ" style="height: 1.05rem;" alt="Google Scholar citations" />
-                  </div>
+                  <div class="icon-stat" id="gs-cite">···</div>
                 </li>
 
                 <li>
@@ -1920,6 +1918,17 @@
   </script>
 
   <script>
+    // Fetch Google Scholar citations from local data
+    (function() {
+      fetch('/data/gs_data.json')
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          var el = document.getElementById('gs-cite');
+          if (el && d.citations > 0) el.textContent = d.citations + ' cites';
+        })
+        .catch(function() {});
+    })();
+
     // Fetch GitHub total stars
     (function() {
       fetch('https://api.github.com/users/NJUyued/repos?per_page=100&type=owner')
