@@ -3,13 +3,7 @@ import json
 import sys
 from datetime import datetime, timezone
 
-try:
-    from scholarly import scholarly
-except ImportError:
-    print("scholarly not installed, installing...")
-    import subprocess
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "scholarly"])
-    from scholarly import scholarly
+from scholarly import scholarly
 
 SCHOLAR_ID = "_56aZQUAAAAJ"
 OUTPUT_FILE = "data/gs_data.json"
