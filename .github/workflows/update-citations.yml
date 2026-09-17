@@ -1,8 +1,10 @@
 name: Update Google Scholar Citations
 
 on:
-  schedule:
-    - cron: "37 2 * * *"   # daily at 02:37 UTC
+  # Citation updates now run from the author's own machine (see
+  # scripts/update_citations.sh + launchd), because Google Scholar blocks
+  # GitHub Actions datacenter IPs. This workflow is kept only as a manual
+  # fallback.
   workflow_dispatch:        # allow manual trigger
 
 jobs:

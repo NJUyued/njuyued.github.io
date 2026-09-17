@@ -53,7 +53,7 @@ citations = fetch_citations()
 
 if citations is None:
     print("All attempts failed, keeping existing data unchanged.")
-    sys.exit(0)
+    sys.exit(1)
 
 data = {
     "citations": citations,
