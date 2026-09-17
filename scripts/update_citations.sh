@@ -1,32 +1,52 @@
 #!/bin/bash
-# Fetch Google Scholar citations and push the update if the count changed.
+# Opportunistically refresh Google Scholar citations: whenever the VPN is up
+# and GitHub is reachable, update and push. Polled by launchd every 5 min.
 set -euo pipefail
 
 REPO="/Users/duanyue/code/njuyued.github.io"
 PYTHON="/usr/bin/python3"
+PROXY_HOST="127.0.0.1"
+PROXY_PORT="50248"
+PROXY="http://${PROXY_HOST}:${PROXY_PORT}"
+STAMP="/Users/duanyue/Library/Logs/com.njuyued.update-citations.lastrun"
+THROTTLE_SEC=43200   # refresh at most once every 12h
+
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
-# VPN proxy for GitHub access only (Clash mixed port). Update if it changes.
-PROXY="http://127.0.0.1:50248"
-
-cd "$REPO"
-
-# Sync with remote so we never push a stale/conflicting history.
-http_proxy="$PROXY" https_proxy="$PROXY" git pull --rebase --autostash origin main
-
-# Fetch fresh citations directly (no proxy): Google Scholar is reachable from
-# this network and blocks VPN datacenter IPs. Exits non-zero on failure.
-if ! "$PYTHON" scripts/fetch_citations.py; then
-    echo "[$(date -u +%FT%TZ)] fetch failed; nothing to commit"
-    exit 1
-fi
-
-if git diff --quiet -- data/gs_data.json; then
-    echo "[$(date -u +%FT%TZ)] no change in citations"
+# 1. VPN up? (proxy port reachable) — otherwise nothing to do.
+if ! nc -z -G 2 "$PROXY_HOST" "$PROXY_PORT" >/dev/null 2>&1; then
     exit 0
 fi
 
-git add data/gs_data.json
-git commit -m "Auto-update Google Scholar citations"
-http_proxy="$PROXY" https_proxy="$PROXY" git push origin main
-echo "[$(date -u +%FT%TZ)] pushed updated citations"
+# 2. GitHub reachable through the proxy?
+if ! curl -sS -o /dev/null --max-time 8 -x "$PROXY" https://github.com >/dev/null 2>&1; then
+    exit 0
+fi
+
+# 3. Throttle: avoid scraping Google Scholar too often while the VPN stays on.
+now=$(date +%s)
+last=0
+[ -f "$STAMP" ] && last=$(cat "$STAMP")
+if [ $((now - last)) -lt "$THROTTLE_SEC" ]; then
+    exit 0
+fi
+
+# Conditions met — refresh.
+cd "$REPO"
+http_proxy="$PROXY" https_proxy="$PROXY" git pull --rebase --autostash origin main
+
+if "$PYTHON" scripts/fetch_citations.py; then
+    if git diff --quiet -- data/gs_data.json; then
+        echo "[$(date -u +%FT%TZ)] no change in citations"
+    else
+        git add data/gs_data.json
+        git commit -m "Auto-update Google Scholar citations"
+        http_proxy="$PROXY" https_proxy="$PROXY" git push origin main
+        echo "[$(date -u +%FT%TZ)] pushed updated citations"
+    fi
+else
+    echo "[$(date -u +%FT%TZ)] fetch failed"
+fi
+
+# Record this attempt so the next refresh waits the throttle window.
+echo "$now" > "$STAMP"
