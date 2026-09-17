@@ -6,6 +6,11 @@ REPO="/Users/duanyue/code/njuyued.github.io"
 PYTHON="/usr/bin/python3"
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
+# VPN proxy for GitHub access (Clash mixed port). Update the port if it changes.
+export http_proxy="http://127.0.0.1:50248"
+export https_proxy="http://127.0.0.1:50248"
+export all_proxy="socks5://127.0.0.1:50248"
+
 cd "$REPO"
 
 # Sync with remote so we never push a stale/conflicting history.
