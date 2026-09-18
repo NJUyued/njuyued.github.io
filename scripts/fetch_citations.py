@@ -3,12 +3,14 @@ import json
 import sys
 import time
 import random
+import signal
 from datetime import datetime, timezone
 
 from scholarly import scholarly, ProxyGenerator
 
 SCHOLAR_ID = "_56aZQUAAAAJ"
 OUTPUT_FILE = "data/gs_data.json"
+FETCH_TIMEOUT = 120  # seconds; abort if a scrape hangs
 
 def fetch_citations():
     # Try 1: direct connection
@@ -49,7 +51,15 @@ def fetch_citations():
     return None
 
 
+def _timeout_handler(signum, frame):
+    print(f"Fetch timed out after {FETCH_TIMEOUT}s")
+    sys.exit(1)
+
+
+signal.signal(signal.SIGALRM, _timeout_handler)
+signal.alarm(FETCH_TIMEOUT)
 citations = fetch_citations()
+signal.alarm(0)
 
 if citations is None:
     print("All attempts failed, keeping existing data unchanged.")

@@ -5,16 +5,21 @@ set -euo pipefail
 
 REPO="/Users/duanyue/code/njuyued.github.io"
 PYTHON="/usr/bin/python3"
-PROXY_HOST="127.0.0.1"
-PROXY_PORT="50248"
-PROXY="http://${PROXY_HOST}:${PROXY_PORT}"
+CLASH_CONFIG="/Users/duanyue/.config/clash/config.yaml"
 STAMP="/Users/duanyue/Library/Logs/com.njuyued.update-citations.lastrun"
 THROTTLE_SEC=43200   # refresh at most once every 12h
 
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
+# Auto-detect the Clash mixed port (it is randomized on restart/profile switch).
+PROXY_PORT=$(awk '/^[[:space:]]*mixed-port:/{gsub(/[^0-9]/,"",$0); print; exit}' "$CLASH_CONFIG" 2>/dev/null)
+case "$PROXY_PORT" in
+    ''|*[!0-9]*) exit 0 ;;   # config missing / not a number — VPN not ready
+esac
+PROXY="http://127.0.0.1:${PROXY_PORT}"
+
 # 1. VPN up? (proxy port reachable) — otherwise nothing to do.
-if ! nc -z -G 2 "$PROXY_HOST" "$PROXY_PORT" >/dev/null 2>&1; then
+if ! nc -z -G 2 127.0.0.1 "$PROXY_PORT" >/dev/null 2>&1; then
     exit 0
 fi
 
