@@ -1,52 +1,57 @@
 """Fetch Google Scholar citation count and save to data/gs_data.json."""
 import json
-import sys
-import time
 import random
 import signal
+import socket
+import sys
+import time
 from datetime import datetime, timezone
 
 from scholarly import scholarly, ProxyGenerator
 
 SCHOLAR_ID = "_56aZQUAAAAJ"
 OUTPUT_FILE = "data/gs_data.json"
-FETCH_TIMEOUT = 120  # seconds; abort if a scrape hangs
+FETCH_TIMEOUT = 180  # hard cap for the whole run
+REQUEST_TIMEOUT = 25  # per-socket timeout, so a stalled proxy fails fast
+
+# requests/scholarly pass no timeout, so a half-open connection to Google
+# would otherwise block forever and eat the whole FETCH_TIMEOUT budget.
+socket.setdefaulttimeout(REQUEST_TIMEOUT)
+
+
+def _citedby():
+    author = scholarly.search_author_id(SCHOLAR_ID)
+    author = scholarly.fill(author, sections=["basics"])
+    return author.get("citedby", 0)
+
 
 def fetch_citations():
-    # Try 1: direct connection
-    try:
-        author = scholarly.search_author_id(SCHOLAR_ID)
-        author = scholarly.fill(author, sections=["basics"])
-        citations = author.get("citedby", 0)
-        if citations:
-            return citations
-    except Exception as e:
-        print(f"Direct connection failed: {e}")
+    # Try 1: direct connection (honours http_proxy/https_proxy from the caller).
+    for attempt in (1, 2):
+        try:
+            citations = _citedby()
+            if citations:
+                return citations
+            print(f"Attempt {attempt}: got no citation count")
+        except Exception as e:
+            print(f"Attempt {attempt} failed: {e}")
+        if attempt == 1:
+            time.sleep(random.uniform(3, 7))
 
-    # Try 2: free proxy
+    # Try 2: free proxy (last resort; Google usually blocks these too).
     try:
         pg = ProxyGenerator()
         if pg.FreeProxies():
             scholarly.use_proxy(pg)
-            time.sleep(random.uniform(5, 10))
-            author = scholarly.search_author_id(SCHOLAR_ID)
-            author = scholarly.fill(author, sections=["basics"])
-            citations = author.get("citedby", 0)
+            time.sleep(random.uniform(3, 6))
+            citations = _citedby()
             if citations:
                 return citations
+            print("Free proxy attempt: got no citation count")
+        else:
+            print("Free proxy attempt: no proxies available")
     except Exception as e:
         print(f"Free proxy failed: {e}")
-
-    # Try 3: another attempt with longer delay
-    try:
-        time.sleep(random.uniform(10, 20))
-        author = scholarly.search_author_id(SCHOLAR_ID)
-        author = scholarly.fill(author, sections=["basics"])
-        citations = author.get("citedby", 0)
-        if citations:
-            return citations
-    except Exception as e:
-        print(f"Final attempt failed: {e}")
 
     return None
 
